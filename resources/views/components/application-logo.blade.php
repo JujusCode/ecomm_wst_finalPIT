@@ -1,0 +1,1 @@
+<img src="{{ asset(path: 'images/logo.png') }}" alt="ByteX Logo" class="h-14 w-auto" />
