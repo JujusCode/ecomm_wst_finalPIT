@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -38,6 +39,51 @@ class OrderController extends Controller
         $orders = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return view('admin.orders.index', compact('orders'));
+    }
+
+    /**
+     * Export orders to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Order::with(['user', 'items.product']);
+
+        // Apply same filters as index
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'LIKE', "%{$search}%")
+                    ->orWhere('first_name', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%")
+                    ->orWhere('town_city', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->get();
+
+        // Calculate statistics
+        $totalRevenue = $orders->sum('total');
+        $totalItems = $orders->sum(function ($order) {
+            return $order->items->sum('quantity');
+        });
+
+        $statusCounts = [
+            'pending' => $orders->where('status', 'pending')->count(),
+            'processing' => $orders->where('status', 'processing')->count(),
+            'completed' => $orders->where('status', 'completed')->count(),
+            'cancelled' => $orders->where('status', 'cancelled')->count(),
+        ];
+
+        $pdf = Pdf::loadView('admin.orders.pdf', compact('orders', 'totalRevenue', 'totalItems', 'statusCounts', 'request'));
+
+        $filename = 'orders_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**

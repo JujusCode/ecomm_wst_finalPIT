@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ asset(path: 'images/logo.png') }}" type="image/png">
 
-    <title>ByteX - Admin Dashboard</title>
+    <title>ByteX - {{ Auth::user()->role === 'admin' ? 'Admin Dashboard' : 'Profile' }}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -103,14 +103,20 @@
     <header class="bg-gray-900 w-full py-3 border-b border-gray-800">
         <nav class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center">
-                <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">ByteX Admin</div>
+                <div class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
+                    {{ Auth::user()->role === 'admin' ? 'ByteX Admin' : 'ByteX' }}
+                </div>
                 
                 <div class="flex items-center gap-6">
                     @auth
                         <!-- User Dropdown -->
                         <div x-data="{ open: false }" @click.away="open = false" class="relative">
                             <button @click="open = !open" class="inline-flex items-center space-x-2 text-white hover:text-gray-300 transition">
-                                <span>{{ Auth::user()->name }}</span>
+                                <div class="flex items-center">
+                                    <!-- Display user avatar -->
+                                    <img src="{{ auth()->user()->avatarUrl }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover mr-2">
+                                    <div>{{ auth()->user()->name }}</div>
+                                </div>
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
@@ -141,7 +147,8 @@
     </header>
 
     <div class="flex">
-        <!-- Sidebar -->
+        <!-- Sidebar - Only show for admins -->
+        @if(Auth::user()->role === 'admin')
         <aside class="w-64 min-h-screen bg-gray-900/80 border-r border-gray-800">
             <div class="p-4">
                 <ul class="space-y-2">
@@ -153,7 +160,6 @@
                             <span class="ml-3">Dashboard</span>
                         </a>
                     </li>
-                    @if(Auth::user()->role === 'admin')
                     <li>
                         <a href="{{ route('admin.categories.index') }}" class="flex items-center p-2 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800/50 transition {{ request()->routeIs('admin.categories.*') ? 'bg-gray-800/50 text-white' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,65 +192,77 @@
                             <span class="ml-3">Orders</span>
                         </a>
                     </li>
-                    @endif
                 </ul>
             </div>
         </aside>
+        @endif
 
         <!-- Main Content -->
-<main class="flex-1 p-8">
-    <!-- Page Heading -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center">
-            <!-- Dynamic Header Title -->
-            <h1 class="text-2xl font-bold text-white">
-                @isset($headerTitle)
-                    {{ $headerTitle }}
-                @else
-                    {{ $header ?? 'Page Title' }}
-                @endisset
-            </h1>
+        <main class="flex-1 p-8">
+            <!-- Page Heading -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center">
+                    <!-- Dynamic Header Title -->
+                    <h1 class="text-2xl font-bold text-white">
+                        
+                    </h1>
+                    
+                    <!-- For regular users, show back button instead of add button -->
+                    @if(Auth::user()->role === 'user')
+                        <button onclick="window.history.back()" class="gradient-btn text-white font-bold py-2 px-4 rounded flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back
+                        </button>
+                    @else
+                        <!-- Add Button (only shows if $addRoute is provided and user is admin) -->
+                        @isset($addRoute)
+                            <a href="{{ $addRoute }}" class="gradient-btn text-white font-bold py-2 px-4 rounded">
+                                {{ $addLabel ?? str_replace('Admin ', '', $header ?? 'Item') }}
+                            </a>
+                        @endisset
+                    @endif
+                </div>
+                
+                <!-- Breadcrumb -->
+                <div class="flex space-x-4 text-sm text-gray-400 mt-2">
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('dashboard') }}" class="hover:text-white transition">Dashboard</a>
+                        <span>/</span>
+                    @else
+                        <a href="javascript:history.back()" class="hover:text-white transition">Back</a>
+                        <span>/</span>
+                    @endif
+                    <span class="text-white">
+                        @isset($headerTitle)
+                            {{ $headerTitle }}
+                        @else
+                            {{ $header ?? 'Current Page' }}
+                        @endisset
+                    </span>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            @if (session('success'))
+                <div class="mb-6 p-4 bg-green-900/50 border border-green-700 text-green-100 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
             
-            <!-- Add Button (only shows if $addRoute is provided) -->
-            @isset($addRoute)
-                <a href="{{ $addRoute }}" class="gradient-btn text-white font-bold py-2 px-4 rounded">
-                    {{ $addLabel ?? str_replace('Admin ', '', $header ?? 'Item') }}
-                </a>
-            @endisset
-        </div>
-        
-        <!-- Breadcrumb -->
-        <div class="flex space-x-4 text-sm text-gray-400 mt-2">
-            <a href="{{ route('dashboard') }}" class="hover:text-white transition">Dashboard</a>
-            <span>/</span>
-            <span class="text-white">
-                @isset($headerTitle)
-                    {{ $headerTitle }}
-                @else
-                    {{ $header ?? 'Current Page' }}
-                @endisset
-            </span>
-        </div>
-    </div>
+            @if (session('error'))
+                <div class="mb-6 p-4 bg-red-900/50 border border-red-700 text-red-100 rounded-lg">
+                    {{ session('error') }}
+                </div>
+            @endif
 
-    <!-- Success/Error Messages -->
-    @if (session('success'))
-        <div class="mb-6 p-4 bg-green-900/50 border border-green-700 text-green-100 rounded-lg">
-            {{ session('success') }}
-        </div>
-    @endif
-    
-    @if (session('error'))
-        <div class="mb-6 p-4 bg-red-900/50 border border-red-700 text-red-100 rounded-lg">
-            {{ session('error') }}
-        </div>
-    @endif
-
-    <!-- Page Content -->
-    <div class="bg-white/5 rounded-2xl backdrop-blur border border-white/10 p-6">
-        {{ $slot }}
+            <!-- Page Content -->
+            <div class="bg-white/5 rounded-2xl backdrop-blur border border-white/10 p-6">
+                {{ $slot }}
+            </div>
+        </main>
     </div>
-</main>
     
     @stack('scripts')
 </body>

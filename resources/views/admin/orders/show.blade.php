@@ -16,22 +16,22 @@
                 <div class="md:col-span-2">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                         <div class="p-6 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold mb-4">Order Information</h3>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-500">Order Information</h3>
                             
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p><span class="font-semibold">Order ID:</span> #{{ $order->id }}</p>
-                                    <p><span class="font-semibold">Date:</span> {{ $order->created_at->format('M d, Y h:i A') }}</p>
-                                    <p><span class="font-semibold">Total:</span> ${{ number_format($order->total, 2) }}</p>
-                                    <p><span class="font-semibold">Payment Method:</span> {{ $order->payment_method }}</p>
+                                    <p class="text-gray-800"><span class="font-semibold text-gray-800">Order ID:</span> #{{ $order->id }}</p>
+                                    <p class="text-gray-800"><span class="font-semibold text-gray-800">Date:</span> {{ $order->created_at->format('M d, Y h:i A') }}</p>
+                                    <p class="text-gray-800"><span class="font-semibold text-gray-800">Total:</span> ${{ number_format($order->total, 2) }}</p>
+                                    <p class="text-gray-800"><span class="font-semibold text-gray-800">Payment Method:</span> {{ $order->payment_method }}</p>
                                 </div>
                                 
                                 <div>
                                     <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="flex items-center">
                                         @csrf
                                         @method('PATCH')
-                                        <label for="status" class="mr-2 text-sm font-medium">Status:</label>
-                                        <select name="status" id="status" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mr-2">
+                                        <label for="status" class="mr-2 text-sm font-medium text-gray-800">Status:</label>
+                                        <select name="status" id="status" class="rounded-md border-gray-300 shadow-sm text-gray-800 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mr-2">
                                             <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
                                             <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
                                             <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -47,7 +47,7 @@
                     </div>
 
                     <!-- Order Items -->
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg text-gray-800 ">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Order Items</h3>
                             
@@ -102,7 +102,7 @@
                 </div>
 
                 <!-- Customer Information -->
-                <div class="md:col-span-1">
+                <div class="md:col-span-1 text-gray-800">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Customer Information</h3>

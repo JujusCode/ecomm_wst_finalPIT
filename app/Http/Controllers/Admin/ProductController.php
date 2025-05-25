@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
@@ -29,6 +30,35 @@ class ProductController extends Controller
             ->paginate(10);
 
         return view('admin.products.index', compact('products'));
+    }
+
+    /**
+     * Export products to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $search = $request->input('search');
+
+        $products = Product::with('category')
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            })
+            ->latest()
+            ->get();
+
+        $totalValue = $products->sum(function ($product) {
+            return $product->price * $product->stock;
+        });
+
+        $pdf = Pdf::loadView('admin.products.pdf', compact('products', 'totalValue', 'search'));
+
+        $filename = 'products_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
@@ -73,6 +103,7 @@ class ProductController extends Controller
         $categories = Category::all();
         return view('admin.products.edit', compact('product', 'categories'));
     }
+
     public function show(Product $product)
     {
         return view('admin.products.show', compact('product'));

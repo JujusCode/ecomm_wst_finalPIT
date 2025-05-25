@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class UserController extends Controller
 {
@@ -30,6 +32,37 @@ class UserController extends Controller
             ->appends(['search' => $search]); // Preserve search in pagination links
 
         return view('admin.users.index', compact('users', 'search'));
+    }
+    // ... (keep all your existing methods)
+
+    /**
+     * Export users to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $search = $request->input('search');
+
+        $users = User::when($search, function ($query) use ($search) {
+            return $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%");
+            });
+        })
+            ->where('id', '!=', auth()->id())
+            ->orderBy('name')
+            ->get();
+
+        $roleCounts = [
+            'admin' => $users->where('role', 'admin')->count(),
+            'user' => $users->where('role', 'user')->count(),
+        ];
+
+        $pdf = Pdf::loadView('admin.users.pdf', compact('users', 'roleCounts', 'request'));
+
+        $filename = 'users_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**

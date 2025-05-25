@@ -68,6 +68,19 @@ Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->gr
     Route::resource('products', AdminProductController::class); // Note: Using AdminProductController
     Route::resource('users', UserController::class);
 
+    // PDF Export routes for admin
+    Route::get('products/export/pdf', [AdminProductController::class, 'exportPdf'])
+        ->name('products.export-pdf');
+
+    Route::get('orders/export/pdf', [AdminOrderController::class, 'exportPdf'])
+        ->name('orders.export-pdf');
+
+    Route::get('categories/export/pdf', [CategoryController::class, 'exportPdf'])
+        ->name('categories.export-pdf');
+
+    Route::get('users/export/pdf', [UserController::class, 'exportPdf'])
+        ->name('users.export-pdf');
+
     // Orders routes with custom updateStatus
     Route::resource('orders', AdminOrderController::class);
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])

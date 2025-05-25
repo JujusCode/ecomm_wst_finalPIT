@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class CategoryController extends Controller
 {
@@ -24,6 +26,28 @@ class CategoryController extends Controller
             ->paginate(10);
 
         return view('admin.categories.index', compact('categories'));
+    }
+    // ... (keep all your existing methods)
+
+    /**
+     * Export categories to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $search = $request->input('search');
+
+        $categories = Category::when($search, function ($query) use ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+        })
+            ->latest()
+            ->get();
+
+        $pdf = Pdf::loadView('admin.categories.pdf', compact('categories', 'request'));
+
+        $filename = 'categories_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
