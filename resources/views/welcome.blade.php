@@ -110,8 +110,13 @@
                     <button @click="open = !open" class="inline-flex items-center space-x-2 text-white hover:text-gray-300 transition">
                         <div class="flex items-center">
                             <!-- Display user avatar -->
-                            <img src="{{ auth()->user()->avatarUrl }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover mr-2">
-                            <div>{{ auth()->user()->name }}</div>
+                            @if(auth()->user()->avatar)
+                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" class="w-8 h-8 rounded-full object-cover mr-2" alt="User Avatar">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+                                <span class="text-gray-500 text-2xl">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                            </div>
+                        @endif                            <div>{{ auth()->user()->name }}</div>
                         </div>
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />

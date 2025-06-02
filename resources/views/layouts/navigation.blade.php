@@ -51,8 +51,13 @@
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                 <div class="flex items-center">
                                     <!-- Display user avatar -->
-                                    <img src="{{ auth()->user()->avatarUrl }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover mr-2">
-                                    <div>{{ auth()->user()->name }}</div>
+                                    @if(auth()->user()->avatar)
+                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" class="w-8 h-8 rounded-full object-cover mr-2" alt="User Avatar">
+                                @else
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+                                        <span class="text-gray-500 text-2xl">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                    </div>
+                                @endif                                        <div>{{ auth()->user()->name }}</div>
                                 </div>
 
                                 <div class="ms-1">

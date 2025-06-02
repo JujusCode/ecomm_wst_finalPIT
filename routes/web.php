@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\IsStaff;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -13,12 +14,16 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController; // Add this for public product routes
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Staff\StaffController;
+use App\Http\Controllers\Staff\StaffOrderController;
+use App\Http\Controllers\Staff\StaffProductController;
+
+
 
 
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
-// routes/web.php
 
 // Public product routes
 Route::controller(ProductController::class)->group(function () {
@@ -85,4 +90,20 @@ Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->gr
     Route::resource('orders', AdminOrderController::class);
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
         ->name('orders.updateStatus');
+});
+
+// Staff Routes
+Route::middleware(['auth', IsStaff::class])->prefix('staff')->name('staff.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
+
+    // Orders Management
+    Route::resource('orders', StaffOrderController::class);
+    Route::get('/orders/{order}/print', [StaffOrderController::class, 'print'])->name('orders.print');
+
+    // Limited Product Management (inventory only)
+    Route::get('/products', [StaffProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product}', [StaffProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/edit', [StaffProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [StaffProductController::class, 'update'])->name('products.update');
 });
